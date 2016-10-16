@@ -1,12 +1,16 @@
 # Built application files
 *.apk
 *.ap_
-
+Step-1/.idea/
 # Files for the ART/Dalvik VM
 *.dex
 
 # Java class files
 *.class
+
+#jar files
+*.jar
+*.so
 
 # Generated files
 bin/
