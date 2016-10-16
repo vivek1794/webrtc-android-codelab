@@ -32,12 +32,16 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //Initialize PeerConnectionFactory globals.
+        //Params are context, initAudio,initVideo and videoCodecHwAcceleration
         PeerConnectionFactory.initializeAndroidGlobals(this, true, true, true);
 
+        //Create a new PeerConnectionFactory instance.
         PeerConnectionFactory.Options options = new PeerConnectionFactory.Options();
         PeerConnectionFactory peerConnectionFactory = new PeerConnectionFactory(options);
 
 
+        //Now create a VideoCapturer instance. Callback methods are there if you want to do something! Duh!
         VideoCapturer videoCapturerAndroid = getVideoCapturer(new CameraVideoCapturer.CameraEventsHandler() {
             @Override
             public void onCameraError(String s) {
@@ -65,21 +69,23 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        //Create MediaConstraints - Will be useful for specifying video and audio constraints. More on this later!
         MediaConstraints constraints = new MediaConstraints();
+
+        //Create a VideoSource instance
         VideoSource videoSource = peerConnectionFactory.createVideoSource(videoCapturerAndroid, constraints);
         VideoTrack localVideoTrack = peerConnectionFactory.createVideoTrack("100", videoSource);
 
+        //create an AudioSource instance
         AudioSource audioSource = peerConnectionFactory.createAudioSource(constraints);
         AudioTrack localAudioTrack = peerConnectionFactory.createAudioTrack("101", audioSource);
 
 
-        // To create our VideoRenderer, we can use the
-        // included VideoRendererGui for simplicity
-        // First we need to set the GLSurfaceView that it should render to
+        //We use the VideoRendererGui for displaying video from Cam.
+        //Get the surfaceview instance.
         GLSurfaceView videoView = (GLSurfaceView) findViewById(R.id.gl_surface_view);
 
-        // Then we set that view, and pass a Runnable
-        // to run once the surface is ready
+        // Then we set that view, and pass a Runnable to run once the surface is ready
         VideoRendererGui.setView(videoView, new Runnable() {
             @Override
             public void run() {
@@ -94,14 +100,13 @@ public class MainActivity extends AppCompatActivity {
             // And finally, with our VideoRenderer ready, we
             // can add our renderer to the VideoTrack.
             localVideoTrack.addRenderer(renderer);
-
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     // Cycle through likely device names for the camera and return the first
-    // capturer that works, or crash if none do.
+    // capturer that works, or crash if none do.// TODO: 16/10/16 don't crash the app. Not good.
     private VideoCapturer getVideoCapturer(CameraVideoCapturer.CameraEventsHandler eventsHandler) {
         String[] cameraFacing = { "front", "back" };
         int[] cameraIndex = { 0, 1 };
