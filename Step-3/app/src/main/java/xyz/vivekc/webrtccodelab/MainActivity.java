@@ -64,11 +64,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     List<PeerConnection.IceServer> peerIceServers = new ArrayList<>();
 
     private static final String TAG = "MainActivity";
-    /*
-        https://service.xirsys.com/ice
-        vivekchanddru
-        ad6ce53a-e6b5-11e6-9685-937ad99985b9
-     */
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,10 +83,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         hangup = findViewById(R.id.end_call);
         localVideoView = findViewById(R.id.local_gl_surface_view);
         remoteVideoView = findViewById(R.id.remote_gl_surface_view);
-
         hangup.setOnClickListener(this);
-
-//        hangup.setVisibility(View.GONE);
     }
 
     private void initVideos() {
@@ -103,6 +95,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void getIceServers() {
+        //get Ice servers using xirsys
         Utils.getInstance().getRetrofitInstance().getIceCandidates().enqueue(new Callback<TurnServerPojo>() {
             @Override
             public void onResponse(@NonNull Call<TurnServerPojo> call, @NonNull Response<TurnServerPojo> response) {
@@ -132,41 +125,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
 
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.end_call: {
-                hangup();
-                break;
-            }
-        }
-    }
-
 
     public void start() {
-
         //Initialize PeerConnectionFactory globals.
-        //Params are context, initAudio,initVideo and videoCodecHwAcceleration
-
         PeerConnectionFactory.InitializationOptions initializationOptions =
                 PeerConnectionFactory.InitializationOptions.builder(this)
                         .setEnableVideoHwAcceleration(true)
-                        .setFieldTrials("")
-                        .setEnableInternalTracer(false)
                         .createInitializationOptions();
         PeerConnectionFactory.initialize(initializationOptions);
 
-        //Create a new PeerConnectionFactory instance.
+        //Create a new PeerConnectionFactory instance - using Hardware encoder and decoder.
         PeerConnectionFactory.Options options = new PeerConnectionFactory.Options();
         DefaultVideoEncoderFactory defaultVideoEncoderFactory = new DefaultVideoEncoderFactory(
-                rootEglBase.getEglBaseContext(), true /* enableIntelVp8Encoder */, true);
+                rootEglBase.getEglBaseContext(),  /* enableIntelVp8Encoder */true,  /* enableH264HighProfile */true);
         DefaultVideoDecoderFactory defaultVideoDecoderFactory = new DefaultVideoDecoderFactory(rootEglBase.getEglBaseContext());
         peerConnectionFactory = new PeerConnectionFactory(options, defaultVideoEncoderFactory, defaultVideoDecoderFactory);
 
 
-        //Now create a VideoCapturer instance. Callback methods are there if you want to do something! Duh!
-//        VideoCapturer videoCapturerAndroid = getVideoCapturer(new CustomCameraEventsHandler());
-
+        //Now create a VideoCapturer instance.
         VideoCapturer videoCapturerAndroid;
         videoCapturerAndroid = createCameraCapturer(new Camera1Enumerator(false));
 
@@ -200,74 +176,34 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         remoteVideoView.setMirror(true);
 
         gotUserMedia = true;
-
-
         if (SignallingClient.getInstance().isInitiator) {
             onTryToStart();
         }
     }
 
 
-    private void hangup() {
-        try {
-            localPeer.close();
-            localPeer = null;
-            SignallingClient.getInstance().close();
-            updateVideoViews(false);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-    }
-
-    private void gotRemoteStream(MediaStream stream) {
-        //we have remote video stream. add to the renderer.
-        final VideoTrack videoTrack = stream.videoTracks.get(0);
+    /**
+     * This method will be called directly by the app when it is the initiator and has got the local media
+     * or when the remote peer sends a message through socket that it is ready to transmit AV data
+     */
+    @Override
+    public void onTryToStart() {
         runOnUiThread(() -> {
-            try {
-                remoteRenderer = new VideoRenderer(remoteVideoView);
-                remoteVideoView.setVisibility(View.VISIBLE);
-                videoTrack.addRenderer(remoteRenderer);
-            } catch (Exception e) {
-                e.printStackTrace();
+            if (!SignallingClient.getInstance().isStarted && localVideoTrack != null && SignallingClient.getInstance().isChannelReady) {
+                createPeerConnection();
+                SignallingClient.getInstance().isStarted = true;
+                if (SignallingClient.getInstance().isInitiator) {
+                    doCall();
+                }
             }
         });
-
     }
 
 
-    public void onIceCandidateReceived(IceCandidate iceCandidate) {
-        //we have received ice candidate. We can set it to the other peer.
-        SignallingClient.getInstance().emitIceCandidate(iceCandidate);
-    }
-
-    @Override
-    protected void onDestroy() {
-        SignallingClient.getInstance().close();
-        super.onDestroy();
-    }
-
-
-    private void doCall() {
-        localPeer.createOffer(new CustomSdpObserver("localCreateOffer") {
-            @Override
-            public void onCreateSuccess(SessionDescription sessionDescription) {
-                super.onCreateSuccess(sessionDescription);
-                localPeer.setLocalDescription(new CustomSdpObserver("localSetLocalDesc"), sessionDescription);
-                Log.d("onCreateSuccess", "SignallingClient emit ");
-                SignallingClient.getInstance().emitMessage(sessionDescription);
-            }
-        }, sdpConstraints);
-    }
-
+    /**
+     * Creating the local peerconnection instance
+     */
     private void createPeerConnection() {
-
-        //create sdpConstraints
-        sdpConstraints = new MediaConstraints();
-        sdpConstraints.mandatory.add(new MediaConstraints.KeyValuePair("offerToReceiveAudio", "true"));
-        sdpConstraints.mandatory.add(new MediaConstraints.KeyValuePair("offerToReceiveVideo", "true"));
-
-
         PeerConnection.RTCConfiguration rtcConfig =
                 new PeerConnection.RTCConfiguration(peerIceServers);
         // TCP candidates are only useful when connecting to a server that supports
@@ -292,8 +228,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 gotRemoteStream(mediaStream);
             }
         });
+
+        addStreamToLocalPeer();
     }
 
+    /**
+     * Adding the stream to the localpeer
+     */
     private void addStreamToLocalPeer() {
         //creating local mediastream
         MediaStream stream = peerConnectionFactory.createLocalMediaStream("102");
@@ -302,20 +243,52 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         localPeer.addStream(stream);
     }
 
-    @Override
-    public void onTryToStart() {
-        runOnUiThread(() -> {
-            if (!SignallingClient.getInstance().isStarted && localVideoTrack != null && SignallingClient.getInstance().isChannelReady) {
-                createPeerConnection();
-                addStreamToLocalPeer();
-                SignallingClient.getInstance().isStarted = true;
-                if (SignallingClient.getInstance().isInitiator) {
-                    doCall();
-                }
+    /**
+     * This method is called when the app is initiator - We generate the offer and send it over through socket
+     * to remote peer
+     */
+    private void doCall() {
+        localPeer.createOffer(new CustomSdpObserver("localCreateOffer") {
+            @Override
+            public void onCreateSuccess(SessionDescription sessionDescription) {
+                super.onCreateSuccess(sessionDescription);
+                localPeer.setLocalDescription(new CustomSdpObserver("localSetLocalDesc"), sessionDescription);
+                Log.d("onCreateSuccess", "SignallingClient emit ");
+                SignallingClient.getInstance().emitMessage(sessionDescription);
             }
-        });
+        }, sdpConstraints);
     }
 
+    /**
+     * Received remote peer's media stream. we will get the first video track and render it
+     */
+    private void gotRemoteStream(MediaStream stream) {
+        //we have remote video stream. add to the renderer.
+        final VideoTrack videoTrack = stream.videoTracks.get(0);
+        runOnUiThread(() -> {
+            try {
+                remoteRenderer = new VideoRenderer(remoteVideoView);
+                remoteVideoView.setVisibility(View.VISIBLE);
+                videoTrack.addRenderer(remoteRenderer);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+
+    }
+
+
+    /**
+     * Received local ice candidate. Send it to remote peer through signalling for negotiation
+     */
+    public void onIceCandidateReceived(IceCandidate iceCandidate) {
+        //we have received ice candidate. We can set it to the other peer.
+        SignallingClient.getInstance().emitIceCandidate(iceCandidate);
+    }
+
+    /**
+     * SignallingCallback - called when the room is created - i.e. you are the initiator
+     */
     @Override
     public void onCreatedRoom() {
         showToast("You created the room " + gotUserMedia);
@@ -324,6 +297,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    /**
+     * SignallingCallback - called when you join the room - you are a participant
+     */
     @Override
     public void onJoinedRoom() {
         showToast("You joined the room " + gotUserMedia);
@@ -343,6 +319,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         runOnUiThread(this::hangup);
     }
 
+    /**
+     * SignallingCallback - Called when remote peer sends offer
+     */
     @Override
     public void onOfferReceived(final JSONObject data) {
         showToast("Received Offer");
@@ -361,6 +340,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
 
+    private void doAnswer() {
+        localPeer.createAnswer(new CustomSdpObserver("localCreateAns") {
+            @Override
+            public void onCreateSuccess(SessionDescription sessionDescription) {
+                super.onCreateSuccess(sessionDescription);
+                localPeer.setLocalDescription(new CustomSdpObserver("localSetLocal"), sessionDescription);
+                SignallingClient.getInstance().emitMessage(sessionDescription);
+            }
+        }, new MediaConstraints());
+    }
+
+    /**
+     * SignallingCallback - Called when remote peer sends answer to your offer
+     */
+
     @Override
     public void onAnswerReceived(JSONObject data) {
         showToast("Received Answer");
@@ -372,6 +366,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    /**
+     * Remote IceCandidate received
+     */
     @Override
     public void onIceCandidateReceived(JSONObject data) {
         try {
@@ -384,33 +381,54 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void updateVideoViews(final boolean remoteVisible) {
         runOnUiThread(() -> {
-
             ViewGroup.LayoutParams params = localVideoView.getLayoutParams();
             if (remoteVisible) {
                 params.height = dpToPx(100);
                 params.width = dpToPx(100);
-//                    hangup.setVisibility(View.VISIBLE);
             } else {
                 params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-//                    hangup.setVisibility(View.GONE);
             }
             localVideoView.setLayoutParams(params);
         });
 
     }
 
-    private void doAnswer() {
-        localPeer.createAnswer(new CustomSdpObserver("localCreateAns") {
-            @Override
-            public void onCreateSuccess(SessionDescription sessionDescription) {
-                super.onCreateSuccess(sessionDescription);
-                localPeer.setLocalDescription(new CustomSdpObserver("localSetLocal"), sessionDescription);
-                SignallingClient.getInstance().emitMessage(sessionDescription);
+
+    /**
+     * Closing up - normal hangup and app destroye
+     */
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.end_call: {
+                hangup();
+                break;
             }
-        }, new MediaConstraints());
+        }
     }
 
+    private void hangup() {
+        try {
+            localPeer.close();
+            localPeer = null;
+            SignallingClient.getInstance().close();
+            updateVideoViews(false);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
+    }
+
+    @Override
+    protected void onDestroy() {
+        SignallingClient.getInstance().close();
+        super.onDestroy();
+    }
+
+    /**
+     * Util Methods
+     */
     public int dpToPx(int dp) {
         DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
         return Math.round(dp * (displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT));
