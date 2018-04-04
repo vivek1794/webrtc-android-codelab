@@ -27,11 +27,13 @@ public class MainActivity extends AppCompatActivity {
 
         //Initialize PeerConnectionFactory globals.
         //Params are context, initAudio,initVideo and videoCodecHwAcceleration
-        PeerConnectionFactory.initializeAndroidGlobals(this, true, true, true);
+        //PeerConnectionFactory.initializeAndroidGlobals(this, true, true, true);
+        PeerConnectionFactory.initialize(PeerConnectionFactory.InitializationOptions.builder(this).setEnableVideoHwAcceleration(true).createInitializationOptions());
+
 
         //Create a new PeerConnectionFactory instance.
-        PeerConnectionFactory.Options options = new PeerConnectionFactory.Options();
-        PeerConnectionFactory peerConnectionFactory = new PeerConnectionFactory(options);
+        //PeerConnectionFactory.Options options = new PeerConnectionFactory.Options();
+        PeerConnectionFactory peerConnectionFactory = PeerConnectionFactory.builder().createPeerConnectionFactory();
 
 
         //Now create a VideoCapturer instance. Callback methods are there if you want to do something! Duh!
