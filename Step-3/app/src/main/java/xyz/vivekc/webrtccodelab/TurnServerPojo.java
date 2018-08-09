@@ -17,7 +17,7 @@ public class TurnServerPojo {
     @SerializedName("e")
     @Expose
     public Object e;
-    @SerializedName("d")
+    @SerializedName("v")
     @Expose
     public IceServerList iceServerList;
 

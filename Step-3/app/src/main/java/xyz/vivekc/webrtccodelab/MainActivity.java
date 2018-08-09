@@ -3,6 +3,7 @@ package xyz.vivekc.webrtccodelab;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Base64;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
@@ -33,6 +34,7 @@ import org.webrtc.VideoRenderer;
 import org.webrtc.VideoSource;
 import org.webrtc.VideoTrack;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,8 +54,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     SurfaceViewRenderer localVideoView;
     SurfaceViewRenderer remoteVideoView;
-    VideoRenderer localRenderer;
-    VideoRenderer remoteRenderer;
 
     Button hangup;
     PeerConnection localPeer;
@@ -96,7 +96,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void getIceServers() {
         //get Ice servers using xirsys
-        Utils.getInstance().getRetrofitInstance().getIceCandidates().enqueue(new Callback<TurnServerPojo>() {
+        byte[] data = new byte[0];
+        try {
+            data = ("<xirsys_ident>:<xirsys_secret>").getBytes("UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        String authToken = "Basic " + Base64.encodeToString(data, Base64.NO_WRAP);
+        Utils.getInstance().getRetrofitInstance().getIceCandidates(authToken).enqueue(new Callback<TurnServerPojo>() {
             @Override
             public void onResponse(@NonNull Call<TurnServerPojo> call, @NonNull Response<TurnServerPojo> response) {
                 TurnServerPojo body = response.body();
@@ -166,11 +173,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             videoCapturerAndroid.startCapture(1024, 720, 30);
         }
         localVideoView.setVisibility(View.VISIBLE);
-        //create a videoRenderer based on SurfaceViewRenderer instance
-        localRenderer = new VideoRenderer(localVideoView);
         // And finally, with our VideoRenderer ready, we
         // can add our renderer to the VideoTrack.
-        localVideoTrack.addRenderer(localRenderer);
+        localVideoTrack.addSink(localVideoView);
 
         localVideoView.setMirror(true);
         remoteVideoView.setMirror(true);
@@ -248,6 +253,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * to remote peer
      */
     private void doCall() {
+        sdpConstraints = new MediaConstraints();
+        sdpConstraints.mandatory.add(
+                new MediaConstraints.KeyValuePair("OfferToReceiveAudio", "true"));
+        sdpConstraints.mandatory.add(new MediaConstraints.KeyValuePair(
+                "OfferToReceiveVideo", "true"));
         localPeer.createOffer(new CustomSdpObserver("localCreateOffer") {
             @Override
             public void onCreateSuccess(SessionDescription sessionDescription) {
@@ -267,9 +277,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         final VideoTrack videoTrack = stream.videoTracks.get(0);
         runOnUiThread(() -> {
             try {
-                remoteRenderer = new VideoRenderer(remoteVideoView);
                 remoteVideoView.setVisibility(View.VISIBLE);
-                videoTrack.addRenderer(remoteRenderer);
+                videoTrack.addSink(remoteVideoView);
             } catch (Exception e) {
                 e.printStackTrace();
             }
