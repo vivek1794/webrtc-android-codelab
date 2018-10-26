@@ -70,6 +70,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        checkForPermissions();
         initViews();
         initVideos();
         getIceServers();
@@ -78,6 +79,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         start();
     }
 
+    private void checkForPermissions() {
+        if (checkSelfPermission(CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{CAMERA}, 1);
+        }
+    }
 
     private void initViews() {
         hangup = findViewById(R.id.end_call);
