@@ -1,7 +1,11 @@
 package xyz.vivekc.webrtccodelab;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
 import android.util.DisplayMetrics;
@@ -63,6 +67,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     boolean gotUserMedia;
     List<PeerConnection.IceServer> peerIceServers = new ArrayList<>();
 
+    final int ALL_PERMISSIONS_CODE = 1;
+
     private static final String TAG = "MainActivity";
 
     @Override
@@ -70,14 +76,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        initViews();
-        initVideos();
-        getIceServers();
-        SignallingClient.getInstance().init(this);
-
-        start();
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED
+            || ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO}, ALL_PERMISSIONS_CODE);
+        } else {
+            // all permissions already granted
+            start();
+        }
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == ALL_PERMISSIONS_CODE
+                && grantResults.length == 2
+                && grantResults[0] == PackageManager.PERMISSION_GRANTED
+                && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+            // all permissions granted
+            start();
+        } else {
+            finish();
+        }
+    }
 
     private void initViews() {
         hangup = findViewById(R.id.end_call);
@@ -132,8 +153,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
 
-
     public void start() {
+        initViews();
+        initVideos();
+        getIceServers();
+
+        SignallingClient.getInstance().init(this);
+
         //Initialize PeerConnectionFactory globals.
         PeerConnectionFactory.InitializationOptions initializationOptions =
                 PeerConnectionFactory.InitializationOptions.builder(this)
