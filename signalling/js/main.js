@@ -109,7 +109,12 @@ navigator.mediaDevices.getUserMedia({
 
 function gotStream(stream) {
   console.log('Adding local stream.');
-  localVideo.src = window.URL.createObjectURL(stream);
+  if ('srcObject' in localVideo) {
+    localVideo.srcObject = stream;
+  } else {
+    // deprecated
+    localVideo.src = window.URL.createObjectURL(stream);
+  }
   localStream = stream;
   sendMessage('got user media');
   if (isInitiator) {
@@ -155,7 +160,12 @@ function createPeerConnection() {
   try {
     pc = new RTCPeerConnection(null);
     pc.onicecandidate = handleIceCandidate;
-    pc.onaddstream = handleRemoteStreamAdded;
+    if ('ontrack' in pc) {
+      pc.ontrack = handleRemoteStreamAdded;
+    } else {
+      // deprecated
+      pc.onaddstream = handleRemoteStreamAdded;
+    }
     pc.onremovestream = handleRemoteStreamRemoved;
     console.log('Created RTCPeerConnnection');
   } catch (e) {
@@ -181,7 +191,12 @@ function handleIceCandidate(event) {
 
 function handleRemoteStreamAdded(event) {
   console.log('Remote stream added.');
-  remoteVideo.src = window.URL.createObjectURL(event.stream);
+  if ('srcObject' in remoteVideo) {
+    remoteVideo.srcObject = event.stream;
+  } else {
+    // deprecated
+    remoteVideo.src = window.URL.createObjectURL(event.stream);
+  }
   remoteStream = event.stream;
 }
 
@@ -245,7 +260,12 @@ function requestTurn(turnURL) {
 
 function handleRemoteStreamAdded(event) {
   console.log('Remote stream added.');
-  remoteVideo.src = window.URL.createObjectURL(event.stream);
+  if ('srcObject' in remoteVideo) {
+    remoteVideo.srcObject = event.stream;
+  } else {
+    // deprecated
+    remoteVideo.src = window.URL.createObjectURL(event.stream);
+  }
   remoteStream = event.stream;
 }
 
