@@ -58,11 +58,10 @@ class SignallingClient {
         }
         if (instance.roomName == null) {
             //set the room name here
-            instance.roomName = "some_room_name";
+            instance.roomName = "vivek17";
         }
         return instance;
     }
-
 
     public void init(SignalingInterface signalingInterface) {
         this.callback = signalingInterface;

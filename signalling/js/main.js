@@ -24,15 +24,16 @@ var sdpConstraints = {
 
 /////////////////////////////////////////////
 
-var room = 'vivek17';
 // Could prompt for room name:
- room = prompt('Enter room name:');
+var room = prompt('Enter room name:');
 
-var socket = io.connect("http://192.168.178.207:1794");
-if (room !== '') {
-  socket.emit('create or join', room);
-  console.log('Attempted to create or  join room', room);
+if (room === '') {
+  room = 'vivek17';
 }
+
+var socket = io.connect("http://192.168.43.139:1794");
+socket.emit('create or join', room);
+console.log('Attempted to create or join room', room);
 
 socket.on('created', function(room) {
   console.log('Created room ' + room);
