@@ -45,3 +45,14 @@ python3 -m http.server
 
 Now open `http://localhost:8000` in the browser and use room name `some_room_name`.
 You can use a different web server as the python buildin, of course.
+
+## How to enable HTTPS
+
+Change http to https in `signalling/index.js`, `signalling/js/main.js` and `Step-3/app/src/main/java/xyz/vivekc/webrtccodelab/SignallingClient.java`.
+
+Then create files `key.pem` and `cert.pem` (e.g. with openssl) and uncomment the key options in `signalling/index.js`.
+
+Command to create `key.pem` and `cert.pem`:
+```
+openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout key.pem -out cert.pem
+```
