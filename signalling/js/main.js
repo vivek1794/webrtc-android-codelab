@@ -28,8 +28,7 @@ var room = 'vivek17';
 // Could prompt for room name:
  room = prompt('Enter room name:');
 
-//var socket = io.connect("http://172.245.132.132:1794");
-var socket = io.connect();
+var socket = io.connect("http://192.168.178.207:1794");
 if (room !== '') {
   socket.emit('create or join', room);
   console.log('Attempted to create or  join room', room);
