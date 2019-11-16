@@ -81,7 +81,6 @@ socket.on('message', function(message) {
   } else if (message.type === 'answer' && isStarted) {
     console.log("received answer");
     pc.setRemoteDescription(new RTCSessionDescription(message));
-    console.log(pc.getRemoteDescription());
   } else if (message.type === 'candidate' && isStarted) {
     var candidate = new RTCIceCandidate({
       sdpMLineIndex: message.label,
