@@ -191,7 +191,7 @@ function handleIceCandidate(event) {
 function handleRemoteStreamAdded(event) {
   console.log('Remote stream added.');
   if ('srcObject' in remoteVideo) {
-    remoteVideo.srcObject = event.stream;
+    remoteVideo.srcObject = event.streams[0];
   } else {
     // deprecated
     remoteVideo.src = window.URL.createObjectURL(event.stream);
