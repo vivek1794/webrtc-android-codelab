@@ -1,27 +1,26 @@
 <!DOCTYPE html>
 <html>
 
-<head>
+  <head>
 
-  <title>Realtime communication with WebRTC</title>
+    <title>Realtime communication with WebRTC</title>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" href="css/main.css" />
 
-  <link rel="stylesheet" href="css/main.css" />
+  </head>
 
-</head>
+  <body>
+    <h1>Realtime communication with WebRTC</h1>
 
-<body>
+    <div id="videos">
+      <video id="localVideo" autoplay muted></video>
+      <video id="remoteVideo" autoplay></video>
+    </div>
 
-  <h1>Realtime communication with WebRTC</h1>
+    <script src="socket.io/socket.io.js"></script>
+    <script src="js/lib/adapter.js"></script>
+    <script src="js/main.js"></script>
 
-  <div id="videos">
-    <video id="localVideo" autoplay muted></video>
-    <video id="remoteVideo" autoplay></video>
-  </div>
-
-  <script src="socket.io/socket.io.js"></script>
-  <script src="js/lib/adapter.js"></script>
-  <script src="js/main.js"></script>
-
-</body>
+  </body>
 
 </html>

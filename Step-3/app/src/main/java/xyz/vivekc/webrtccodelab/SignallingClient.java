@@ -58,11 +58,10 @@ class SignallingClient {
         }
         if (instance.roomName == null) {
             //set the room name here
-            instance.roomName = "some_room_name";
+            instance.roomName = "vivek17";
         }
         return instance;
     }
-
 
     public void init(SignalingInterface signalingInterface) {
         this.callback = signalingInterface;
@@ -72,7 +71,7 @@ class SignallingClient {
             IO.setDefaultHostnameVerifier((hostname, session) -> true);
             IO.setDefaultSSLContext(sslcontext);
             //set the socket.io url here
-            socket = IO.socket("your_socket_io_instance_url_with_port");
+            socket = IO.socket("http://192.168.178.207:1794");
             socket.connect();
             Log.d("SignallingClient", "init() called");
 

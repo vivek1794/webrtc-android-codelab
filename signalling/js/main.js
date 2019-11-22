@@ -24,16 +24,16 @@ var sdpConstraints = {
 
 /////////////////////////////////////////////
 
-var room = 'vivek17';
 // Could prompt for room name:
- room = prompt('Enter room name:');
+var room = prompt('Enter room name:');
 
-//var socket = io.connect("http://172.245.132.132:1794");
-var socket = io.connect();
-if (room !== '') {
-  socket.emit('create or join', room);
-  console.log('Attempted to create or  join room', room);
+if (room === '') {
+  room = 'vivek17';
 }
+
+var socket = io.connect("http://192.168.43.139:1794");
+socket.emit('create or join', room);
+console.log('Attempted to create or join room', room);
 
 socket.on('created', function(room) {
   console.log('Created room ' + room);
@@ -80,8 +80,7 @@ socket.on('message', function(message) {
     doAnswer();
   } else if (message.type === 'answer' && isStarted) {
     console.log("received answer");
-    pc.setRemoteDescription(new RTCSsseionDescription(message));
-    console.log(pc.getRemoteDescription());
+    pc.setRemoteDescription(new RTCSessionDescription(message));
   } else if (message.type === 'candidate' && isStarted) {
     var candidate = new RTCIceCandidate({
       sdpMLineIndex: message.label,
@@ -109,7 +108,12 @@ navigator.mediaDevices.getUserMedia({
 
 function gotStream(stream) {
   console.log('Adding local stream.');
-  localVideo.src = window.URL.createObjectURL(stream);
+  if ('srcObject' in localVideo) {
+    localVideo.srcObject = stream;
+  } else {
+    // deprecated
+    localVideo.src = window.URL.createObjectURL(stream);
+  }
   localStream = stream;
   sendMessage('got user media');
   if (isInitiator) {
@@ -155,7 +159,12 @@ function createPeerConnection() {
   try {
     pc = new RTCPeerConnection(null);
     pc.onicecandidate = handleIceCandidate;
-    pc.onaddstream = handleRemoteStreamAdded;
+    if ('ontrack' in pc) {
+      pc.ontrack = handleRemoteStreamAdded;
+    } else {
+      // deprecated
+      pc.onaddstream = handleRemoteStreamAdded;
+    }
     pc.onremovestream = handleRemoteStreamRemoved;
     console.log('Created RTCPeerConnnection');
   } catch (e) {
@@ -181,7 +190,12 @@ function handleIceCandidate(event) {
 
 function handleRemoteStreamAdded(event) {
   console.log('Remote stream added.');
-  remoteVideo.src = window.URL.createObjectURL(event.stream);
+  if ('srcObject' in remoteVideo) {
+    remoteVideo.srcObject = event.streams[0];
+  } else {
+    // deprecated
+    remoteVideo.src = window.URL.createObjectURL(event.stream);
+  }
   remoteStream = event.stream;
 }
 
@@ -241,12 +255,6 @@ function requestTurn(turnURL) {
     xhr.open('GET', turnURL, true);
     xhr.send();
   }
-}
-
-function handleRemoteStreamAdded(event) {
-  console.log('Remote stream added.');
-  remoteVideo.src = window.URL.createObjectURL(event.stream);
-  remoteStream = event.stream;
 }
 
 function handleRemoteStreamRemoved(event) {
