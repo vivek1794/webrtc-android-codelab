@@ -449,7 +449,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void hangup() {
         try {
-            localPeer.close();
+            if (localPeer != null) {
+                localPeer.close();
+            }
             localPeer = null;
             SignallingClient.getInstance().close();
             updateVideoViews(false);
