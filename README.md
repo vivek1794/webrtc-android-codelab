@@ -43,7 +43,7 @@ cd signalling
 python3 -m http.server
 ```
 
-Now open `http://localhost:8000` in the browser and use room name `some_room_name`.
+Now open `http://localhost:8000` in the browser.
 You can use a different web server as the python buildin, of course.
 
 ## How to enable HTTPS
