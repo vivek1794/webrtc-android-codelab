@@ -13,7 +13,7 @@ The test setup contains of three components:
 
 Important: The IP address of the signaling server is hardcoded to `192.168.178.207` and need to be changed in files `SignallingClient.java` and `main.js`.
 
-### Build Android App
+### Build Android App Client
 
 - "Open an existing Android Studio project"
 - Select the `Step-3` folder
@@ -36,7 +36,7 @@ node index.js
 
 The last command start the signalling server.
 
-### Start WebRTC site
+### Start Web Client
 
 ```
 cd signalling
