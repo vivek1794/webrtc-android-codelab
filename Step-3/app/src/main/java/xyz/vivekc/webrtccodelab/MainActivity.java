@@ -46,6 +46,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, SignallingClient.SignalingInterface {
     PeerConnectionFactory peerConnectionFactory;
     MediaConstraints audioConstraints;
@@ -198,10 +199,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         audioSource = peerConnectionFactory.createAudioSource(audioConstraints);
         localAudioTrack = peerConnectionFactory.createAudioTrack("101", audioSource);
 
-
         if (videoCapturerAndroid != null) {
             videoCapturerAndroid.startCapture(1024, 720, 30);
         }
+
         localVideoView.setVisibility(View.VISIBLE);
         // And finally, with our VideoRenderer ready, we
         // can add our renderer to the VideoTrack.
@@ -215,7 +216,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             onTryToStart();
         }
     }
-
 
     /**
      * This method will be called directly by the app when it is the initiator and has got the local media
@@ -233,7 +233,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
     }
-
 
     /**
      * Creating the local peerconnection instance
@@ -279,15 +278,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     /**
-     * This method is called when the app is initiator - We generate the offer and send it over through socket
+     * This method is called when the app is the initiator - We generate the offer and send it over through socket
      * to remote peer
      */
     private void doCall() {
         sdpConstraints = new MediaConstraints();
         sdpConstraints.mandatory.add(
                 new MediaConstraints.KeyValuePair("OfferToReceiveAudio", "true"));
-        sdpConstraints.mandatory.add(new MediaConstraints.KeyValuePair(
-                "OfferToReceiveVideo", "true"));
+        sdpConstraints.mandatory.add(
+                new MediaConstraints.KeyValuePair("OfferToReceiveVideo", "true"));
         localPeer.createOffer(new CustomSdpObserver("localCreateOffer") {
             @Override
             public void onCreateSuccess(SessionDescription sessionDescription) {
@@ -313,9 +312,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 e.printStackTrace();
             }
         });
-
     }
-
 
     /**
      * Received local ice candidate. Send it to remote peer through signalling for negotiation
@@ -417,7 +414,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-
     private void updateVideoViews(final boolean remoteVisible) {
         runOnUiThread(() -> {
             ViewGroup.LayoutParams params = localVideoView.getLayoutParams();
@@ -429,9 +425,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
             localVideoView.setLayoutParams(params);
         });
-
     }
-
 
     /**
      * Closing up - normal hangup and app destroye
@@ -458,7 +452,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
     @Override
