@@ -12,6 +12,7 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.Toast;
@@ -156,6 +157,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     public void start() {
+        // keep screen on
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
         initViews();
         initVideos();
         getIceServers();
