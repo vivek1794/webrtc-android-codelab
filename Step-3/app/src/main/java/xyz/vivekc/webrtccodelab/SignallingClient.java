@@ -79,7 +79,6 @@ class SignallingClient {
                 emitInitStatement(roomName);
             }
 
-
             //room created event.
             socket.on("created", args -> {
                 Log.d("SignallingClient", "created call() called with: args = [" + Arrays.toString(args) + "]");
@@ -170,7 +169,6 @@ class SignallingClient {
         }
     }
 
-
     public void emitIceCandidate(IceCandidate iceCandidate) {
         try {
             JSONObject object = new JSONObject();
@@ -182,7 +180,6 @@ class SignallingClient {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
     
     public void close() {
@@ -190,7 +187,6 @@ class SignallingClient {
         socket.disconnect();
         socket.close();
     }
-
 
     interface SignalingInterface {
         void onRemoteHangUp(String msg);

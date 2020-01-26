@@ -12,6 +12,7 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.Toast;
@@ -32,9 +33,9 @@ import org.webrtc.MediaStream;
 import org.webrtc.PeerConnection;
 import org.webrtc.PeerConnectionFactory;
 import org.webrtc.SessionDescription;
+import org.webrtc.SurfaceTextureHelper;
 import org.webrtc.SurfaceViewRenderer;
 import org.webrtc.VideoCapturer;
-import org.webrtc.VideoRenderer;
 import org.webrtc.VideoSource;
 import org.webrtc.VideoTrack;
 
@@ -46,6 +47,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, SignallingClient.SignalingInterface {
     PeerConnectionFactory peerConnectionFactory;
     MediaConstraints audioConstraints;
@@ -55,6 +57,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     VideoTrack localVideoTrack;
     AudioSource audioSource;
     AudioTrack localAudioTrack;
+    SurfaceTextureHelper surfaceTextureHelper;
 
     SurfaceViewRenderer localVideoView;
     SurfaceViewRenderer remoteVideoView;
@@ -154,6 +157,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     public void start() {
+        // keep screen on
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
         initViews();
         initVideos();
         getIceServers();
@@ -163,7 +169,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //Initialize PeerConnectionFactory globals.
         PeerConnectionFactory.InitializationOptions initializationOptions =
                 PeerConnectionFactory.InitializationOptions.builder(this)
-                        .setEnableVideoHwAcceleration(true)
                         .createInitializationOptions();
         PeerConnectionFactory.initialize(initializationOptions);
 
@@ -172,13 +177,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         DefaultVideoEncoderFactory defaultVideoEncoderFactory = new DefaultVideoEncoderFactory(
                 rootEglBase.getEglBaseContext(),  /* enableIntelVp8Encoder */true,  /* enableH264HighProfile */true);
         DefaultVideoDecoderFactory defaultVideoDecoderFactory = new DefaultVideoDecoderFactory(rootEglBase.getEglBaseContext());
-        peerConnectionFactory = new PeerConnectionFactory(options, defaultVideoEncoderFactory, defaultVideoDecoderFactory);
-
+        peerConnectionFactory = PeerConnectionFactory.builder()
+                .setOptions(options)
+                .setVideoEncoderFactory(defaultVideoEncoderFactory)
+                .setVideoDecoderFactory(defaultVideoDecoderFactory)
+                .createPeerConnectionFactory();
 
         //Now create a VideoCapturer instance.
         VideoCapturer videoCapturerAndroid;
         videoCapturerAndroid = createCameraCapturer(new Camera1Enumerator(false));
-
 
         //Create MediaConstraints - Will be useful for specifying video and audio constraints.
         audioConstraints = new MediaConstraints();
@@ -186,7 +193,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         //Create a VideoSource instance
         if (videoCapturerAndroid != null) {
-            videoSource = peerConnectionFactory.createVideoSource(videoCapturerAndroid);
+            surfaceTextureHelper = SurfaceTextureHelper.create("CaptureThread", rootEglBase.getEglBaseContext());
+            videoSource = peerConnectionFactory.createVideoSource(videoCapturerAndroid.isScreencast());
+            videoCapturerAndroid.initialize(surfaceTextureHelper, this, videoSource.getCapturerObserver());
         }
         localVideoTrack = peerConnectionFactory.createVideoTrack("100", videoSource);
 
@@ -194,10 +203,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         audioSource = peerConnectionFactory.createAudioSource(audioConstraints);
         localAudioTrack = peerConnectionFactory.createAudioTrack("101", audioSource);
 
-
         if (videoCapturerAndroid != null) {
             videoCapturerAndroid.startCapture(1024, 720, 30);
         }
+
         localVideoView.setVisibility(View.VISIBLE);
         // And finally, with our VideoRenderer ready, we
         // can add our renderer to the VideoTrack.
@@ -211,7 +220,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             onTryToStart();
         }
     }
-
 
     /**
      * This method will be called directly by the app when it is the initiator and has got the local media
@@ -229,7 +237,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
     }
-
 
     /**
      * Creating the local peerconnection instance
@@ -275,15 +282,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     /**
-     * This method is called when the app is initiator - We generate the offer and send it over through socket
+     * This method is called when the app is the initiator - We generate the offer and send it over through socket
      * to remote peer
      */
     private void doCall() {
         sdpConstraints = new MediaConstraints();
         sdpConstraints.mandatory.add(
                 new MediaConstraints.KeyValuePair("OfferToReceiveAudio", "true"));
-        sdpConstraints.mandatory.add(new MediaConstraints.KeyValuePair(
-                "OfferToReceiveVideo", "true"));
+        sdpConstraints.mandatory.add(
+                new MediaConstraints.KeyValuePair("OfferToReceiveVideo", "true"));
         localPeer.createOffer(new CustomSdpObserver("localCreateOffer") {
             @Override
             public void onCreateSuccess(SessionDescription sessionDescription) {
@@ -309,9 +316,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 e.printStackTrace();
             }
         });
-
     }
-
 
     /**
      * Received local ice candidate. Send it to remote peer through signalling for negotiation
@@ -413,7 +418,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-
     private void updateVideoViews(final boolean remoteVisible) {
         runOnUiThread(() -> {
             ViewGroup.LayoutParams params = localVideoView.getLayoutParams();
@@ -425,9 +429,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
             localVideoView.setLayoutParams(params);
         });
-
     }
-
 
     /**
      * Closing up - normal hangup and app destroye
@@ -445,20 +447,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void hangup() {
         try {
-            localPeer.close();
+            if (localPeer != null) {
+                localPeer.close();
+            }
             localPeer = null;
             SignallingClient.getInstance().close();
             updateVideoViews(false);
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
     @Override
     protected void onDestroy() {
         SignallingClient.getInstance().close();
         super.onDestroy();
+
+        if (surfaceTextureHelper != null) {
+          surfaceTextureHelper.dispose();
+          surfaceTextureHelper = null;
+        }
     }
 
     /**
