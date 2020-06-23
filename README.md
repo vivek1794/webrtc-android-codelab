@@ -1,3 +1,16 @@
+## Update
+As many might have noticed, I haven't been updating this codelab. It has been some time since I worked with WebRTC but it is in my to-do list to get this updated with as much information as possible. For now, I assume this is broken. PRs are welcome until I get the time to fix it myself. I am pretty sure the Signaling and ICE Servers are not working anymore. For ICE, I used a service - Xirsys which changed their APIs and pricing structure. You would have to look for alternatives (or install Coturn on an AWS instance to run the TURN servers yourself). For Signaling, it is not meant to be production ready. It requires a lot of changes to make it work. 
+
+I would recommend looking at https://webrtc.org/getting-started/firebase-rtc-codelab for using Firebase for signalling. I intend on getting the following done
+
+- Make change to the app code so that it uses Firebase for signalling and that would mean you can use Firebase RTC Codelab above to get the web component
+- Try to create a multi-peer mesh network (smaller group calls without the need for a media server)
+- Screen sharing support for mobiles
+
+I don't have a timeline on when I can get to these. If someone wants to collaborate with me on this, I would love to see some PRs.
+
+Thank you for the support! 
+
 # webrtc-android-codelab
 An attempt to provide a codelab for Webrtc in Android - Similar to codelab for web at https://codelabs.developers.google.com/codelabs/webrtc-web/
 
