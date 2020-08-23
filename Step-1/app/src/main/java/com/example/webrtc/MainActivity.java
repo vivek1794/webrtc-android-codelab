@@ -1,6 +1,11 @@
 package com.example.webrtc;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
 
@@ -12,6 +17,7 @@ import org.webrtc.EglBase;
 import org.webrtc.Logging;
 import org.webrtc.MediaConstraints;
 import org.webrtc.PeerConnectionFactory;
+import org.webrtc.SurfaceTextureHelper;
 import org.webrtc.SurfaceViewRenderer;
 import org.webrtc.VideoCapturer;
 //import org.webrtc.VideoRenderer;
@@ -26,7 +32,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) !=
+                PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.CAMERA},
+                    50); }
 
         //Initialize PeerConnectionFactory globals.
         //Params are context, initAudio,initVideo and videoCodecHwAcceleration
