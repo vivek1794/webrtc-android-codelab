@@ -26,7 +26,6 @@ import org.webrtc.VideoTrack;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
-    SurfaceTextureHelper surfaceTextureHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
 
         //Create a VideoSource instance
         EglBase rootEglBase = EglBase.create();
-        surfaceTextureHelper = SurfaceTextureHelper.create("CaptureThread", rootEglBase.getEglBaseContext());
+        SurfaceTextureHelper surfaceTextureHelper = SurfaceTextureHelper.create("CaptureThread", rootEglBase.getEglBaseContext());
         VideoSource videoSource = peerConnectionFactory.createVideoSource(videoCapturerAndroid.isScreencast());
         videoCapturerAndroid.initialize(surfaceTextureHelper, this, videoSource.getCapturerObserver());
         VideoTrack localVideoTrack = peerConnectionFactory.createVideoTrack("100", videoSource);
@@ -93,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
         return videoCapturer;
     }
 
-    private VideoCapturer createCameraCapturer(CameraEnumerator enumerator) {
+    private VideoCapturer createCameraCapturer(Camera1Enumerator enumerator) {
         final String[] deviceNames = enumerator.getDeviceNames();
 
         // First, try to find front facing camera
