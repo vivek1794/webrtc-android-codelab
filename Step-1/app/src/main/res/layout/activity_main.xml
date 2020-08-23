@@ -4,7 +4,7 @@
     android:id="@+id/activity_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="xyz.vivekc.webrtccodelab.MainActivity">
+    tools:context=".MainActivity">
 
 
     <org.webrtc.SurfaceViewRenderer
