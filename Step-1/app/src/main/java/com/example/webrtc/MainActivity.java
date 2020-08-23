@@ -26,6 +26,7 @@ import org.webrtc.VideoTrack;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
+    SurfaceTextureHelper surfaceTextureHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,7 +55,10 @@ public class MainActivity extends AppCompatActivity {
         MediaConstraints constraints = new MediaConstraints();
 
         //Create a VideoSource instance
+        EglBase rootEglBase = EglBase.create();
+        surfaceTextureHelper = SurfaceTextureHelper.create("CaptureThread", rootEglBase.getEglBaseContext());
         VideoSource videoSource = peerConnectionFactory.createVideoSource(videoCapturerAndroid.isScreencast());
+        videoCapturerAndroid.initialize(surfaceTextureHelper, this, videoSource.getCapturerObserver());
         VideoTrack localVideoTrack = peerConnectionFactory.createVideoTrack("100", videoSource);
 
         //create an AudioSource instance
@@ -67,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
 
         //create surface renderer, init it and add the renderer to the track
         SurfaceViewRenderer videoView = (SurfaceViewRenderer) findViewById(R.id.surface_rendeer);
-        EglBase rootEglBase = EglBase.create();
+
         videoView.init(rootEglBase.getEglBaseContext(), null);
         videoView.setVisibility(View.VISIBLE);
 
