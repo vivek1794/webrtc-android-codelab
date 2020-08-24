@@ -1,4 +1,4 @@
-package com.example.webrtc;
+package xyz.vivekc.webrtccodelab;
 
 import org.junit.Test;
 

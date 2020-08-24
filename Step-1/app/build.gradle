@@ -6,7 +6,7 @@ android {
     ndkVersion "21.3.6528147"
 
     defaultConfig {
-        applicationId "com.example.webrtc"
+        applicationId "xyz.vivekc.webrtccodelab"
         minSdkVersion 21
         targetSdkVersion 30
         versionCode 1
