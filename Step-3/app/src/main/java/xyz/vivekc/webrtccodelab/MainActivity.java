@@ -3,10 +3,10 @@ package xyz.vivekc.webrtccodelab;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.Base64;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -164,7 +164,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         initVideos();
         getIceServers();
 
-        SignallingClient.getInstance().init(this);
 
         //Initialize PeerConnectionFactory globals.
         PeerConnectionFactory.InitializationOptions initializationOptions =
@@ -219,6 +218,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (SignallingClient.getInstance().isInitiator) {
             onTryToStart();
         }
+        SignallingClient.getInstance().init(this);
+
     }
 
     /**
