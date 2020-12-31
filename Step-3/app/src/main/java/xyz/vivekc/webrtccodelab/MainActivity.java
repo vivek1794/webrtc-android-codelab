@@ -1,7 +1,9 @@
 package xyz.vivekc.webrtccodelab;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.pm.PackageManager;
+import android.media.AudioManager;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
@@ -84,6 +86,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO}, ALL_PERMISSIONS_CODE);
         } else {
             // all permissions already granted
+            setSpeakerPhone(true);
+
             start();
         }
     }
@@ -482,5 +486,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         return null;
+    }
+    public void setSpeakerPhone(boolean speakerStatus){
+        AudioManager audioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+
+        audioManager.setSpeakerphoneOn(true);
+
+
     }
 }
