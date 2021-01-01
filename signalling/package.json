@@ -1,9 +1,20 @@
 {
-  "name": "webrtc-codelab",
-  "version": "0.0.1",
-  "description": "WebRTC codelab",
+  "name": "heroku_signalling_server",
+  "version": "1.0.0",
+  "description": "\"signalling server hosted using heroku'",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
   "dependencies": {
-    "node-static": "0.7.7",
-    "socket.io": "1.2.0"
-  }
+    "http" : "^0.0.1-security",
+    "socketio" : "1.0.0"
+  },
+  "engines": {
+    "node": "12.13"
+  },
+  "author": "NSD",
+  "license": "ISC"
 }
+
