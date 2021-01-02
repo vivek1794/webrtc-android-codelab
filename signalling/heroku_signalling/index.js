@@ -14,7 +14,7 @@ var options = {
  var server = https.createServer(options,function(req, res) {
   //fileServer.serve(req, res);
 
-}).listen(1794);
+}).listen(process.env.PORT || 1794);
 
 var io = socketio.listen(server);
 io.on('connection', function(socket) {
