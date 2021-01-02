@@ -260,7 +260,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     public void onStateChange() {
                         if(dataChannel.state()==DataChannel.State.OPEN){
                             String message="hello";
-                            ByteBuffer byteBuffer = ByteBuffer.wrap(message.getBytes(StandardCharsets.UTF_8));
+                            ByteBuffer byteBuffer = ByteBuffer.wrap(message.getBytes());
 
                             DataChannel.Buffer buffer = new DataChannel.Buffer(byteBuffer,false);
                             sendChannel.send(buffer);
