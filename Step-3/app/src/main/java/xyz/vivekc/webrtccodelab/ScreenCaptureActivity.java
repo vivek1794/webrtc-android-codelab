@@ -1,11 +1,16 @@
 package xyz.vivekc.webrtccodelab;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.media.AudioManager;
+import android.media.projection.MediaProjection;
+import android.media.projection.MediaProjectionManager;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.appcompat.app.AppCompatActivity;
@@ -37,6 +42,7 @@ import org.webrtc.MediaConstraints;
 import org.webrtc.MediaStream;
 import org.webrtc.PeerConnection;
 import org.webrtc.PeerConnectionFactory;
+import org.webrtc.ScreenCapturerAndroid;
 import org.webrtc.SessionDescription;
 import org.webrtc.SurfaceTextureHelper;
 import org.webrtc.SurfaceViewRenderer;
@@ -55,7 +61,9 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, SignallingClient.SignalingInterface {
+public class ScreenCaptureActivity extends AppCompatActivity implements View.OnClickListener, SignallingClient.SignalingInterface {
+    private static final int SCREEN_CAPTURE_CODE=1;
+
     PeerConnectionFactory peerConnectionFactory;
     MediaConstraints audioConstraints;
     MediaConstraints videoConstraints;
@@ -66,6 +74,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     AudioTrack localAudioTrack;
     DataChannel sendChannel;
     SurfaceTextureHelper surfaceTextureHelper;
+    Intent mediaProjectionData;
+
 
     SurfaceViewRenderer localVideoView;
     SurfaceViewRenderer remoteVideoView;
@@ -80,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     final int ALL_PERMISSIONS_CODE = 1;
 
-    private static final String TAG = "MainActivity";
+    private static final String TAG = "ScreenCaptureActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,15 +98,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED
-            || ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED
-            || ContextCompat.checkSelfPermission(this, Manifest.permission.MODIFY_AUDIO_SETTINGS) != PackageManager.PERMISSION_GRANTED) {
+                || ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED
+                || ContextCompat.checkSelfPermission(this, Manifest.permission.MODIFY_AUDIO_SETTINGS) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO, Manifest.permission.MODIFY_AUDIO_SETTINGS}, ALL_PERMISSIONS_CODE);
         } else {
             // all permissions already granted
             setSpeakerPhone(false);//set to true if you want audio on speaker phone
+            MediaProjectionManager mediaProjectionManager = (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+            startActivityForResult(mediaProjectionManager.createScreenCaptureIntent(),SCREEN_CAPTURE_CODE);
 
-            start();
         }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode,resultCode,data);
+        if(requestCode==SCREEN_CAPTURE_CODE && resultCode== Activity.RESULT_OK){
+            mediaProjectionData=data;
+        }
+        start();
     }
 
     @Override
@@ -108,7 +128,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 && grantResults[0] == PackageManager.PERMISSION_GRANTED
                 && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
             // all permissions granted
-            start();
+
         } else {
             finish();
         }
@@ -165,17 +185,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         //Now create a VideoCapturer instance.
         VideoCapturer videoCapturerAndroid;
-        videoCapturerAndroid = createCameraCapturer(new Camera1Enumerator(false));
-
+        //videoCapturerAndroid = createCameraCapturer(new Camera1Enumerator(false));
+        ScreenCapturerAndroid screenCapturerAndroid=new ScreenCapturerAndroid(mediaProjectionData, new MediaProjection.Callback() {
+            @Override
+            public void onStop() {
+                Log.i(TAG,"User revoked permission to capture screen");
+            }
+        });
         //Create MediaConstraints - Will be useful for specifying video and audio constraints.
         audioConstraints = new MediaConstraints();
         videoConstraints = new MediaConstraints();
 
         //Create a VideoSource instance
-        if (videoCapturerAndroid != null) {
+        if (screenCapturerAndroid != null) {
             surfaceTextureHelper = SurfaceTextureHelper.create("CaptureThread", rootEglBase.getEglBaseContext());
-            videoSource = peerConnectionFactory.createVideoSource(videoCapturerAndroid.isScreencast());
-            videoCapturerAndroid.initialize(surfaceTextureHelper, this, videoSource.getCapturerObserver());
+            videoSource = peerConnectionFactory.createVideoSource(screenCapturerAndroid.isScreencast());
+            screenCapturerAndroid.initialize(surfaceTextureHelper, this, videoSource.getCapturerObserver());
         }
         localVideoTrack = peerConnectionFactory.createVideoTrack("100", videoSource);
 
@@ -183,8 +208,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         audioSource = peerConnectionFactory.createAudioSource(audioConstraints);
         localAudioTrack = peerConnectionFactory.createAudioTrack("101", audioSource);
 
-        if (videoCapturerAndroid != null) {
-            videoCapturerAndroid.startCapture(1024, 720, 30);
+        if (screenCapturerAndroid != null) {
+            screenCapturerAndroid.startCapture(1024, 720, 30);
         }
 
         localVideoView.setVisibility(View.VISIBLE);
@@ -193,7 +218,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         localVideoTrack.addSink(localVideoView);
 
         localVideoView.setMirror(true);
-        remoteVideoView.setMirror(true);//set to false if the other peer is casting their screen
+        remoteVideoView.setMirror(true);
 
         gotUserMedia = true;
         if (SignallingClient.getInstance().isInitiator) {
@@ -478,8 +503,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onDestroy();
 
         if (surfaceTextureHelper != null) {
-          surfaceTextureHelper.dispose();
-          surfaceTextureHelper = null;
+            surfaceTextureHelper.dispose();
+            surfaceTextureHelper = null;
         }
     }
 
@@ -492,7 +517,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     public void showToast(final String msg) {
-        runOnUiThread(() -> Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show());
+        runOnUiThread(() -> Toast.makeText(ScreenCaptureActivity.this, msg, Toast.LENGTH_SHORT).show());
     }
 
     private VideoCapturer createCameraCapturer(CameraEnumerator enumerator) {
