@@ -17,7 +17,7 @@ First, download this repository as a ZIP file.
 socket = IO.socket("http://192.168.0.110:1794");
 ```
 - Download Node.js [here](https://nodejs.org/en/download)
-- Navigate to the heroku_signalling folder located in the signalling folder
+- Navigate to the [heroku_signalling](./signalling/heroku_signalling) folder located in the [signalling](./signalling) folder
 - Install the required packages by running `npm install`
 - Run the signalling server code using `node index.js`
 - The app will now work on 2 devices connected to the same network as the computer running the signalling server
