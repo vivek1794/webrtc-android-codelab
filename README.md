@@ -12,8 +12,9 @@ First, download this repository as a ZIP file.
 * You can now push the app to your android devices. But, since the signalling server is not up yet, the app won't work now.
 ### Run the signalling server on your local machine
 - Find your computer's local IP address using `ipconfig`
-- In the SignallingClient class, go to line 74 and replace the placeholder for the IP address with the IP address of your computer. Set the port number to  
-- Doenload Node.js here : https://nodejs.org/en/download
+- In the SignallingClient class, go to line 74 and replace the placeholder for the url with the `http://` followed by the IP address of your computer. Set the port number to 1794. For example, if your computer's local IP address is 192.168.0.110, line 74 will look like
+`socket = IO.socket("http://192.168.0.110:1794");`
+- Download Node.js [here] (https://nodejs.org/en/download)
 - Navigate to the heroku_signalling folder located in the signalling folder
 - Install the required packages by running `npm install`
 - Run the signalling server code using `node index.js`
