@@ -13,7 +13,9 @@ First, download this repository as a ZIP file.
 ### Run the signalling server on your local machine
 - Find your computer's local IP address using `ipconfig`
 - In the SignallingClient class, go to line 74 and replace the placeholder for the url with the `http://` followed by the IP address of your computer. Set the port number to 1794. For example, if your computer's local IP address is 192.168.0.110, line 74 will look like
-```socket = IO.socket("http://192.168.0.110:1794");```
+```
+socket = IO.socket("http://192.168.0.110:1794");
+```
 - Download Node.js [here](https://nodejs.org/en/download)
 - Navigate to the heroku_signalling folder located in the signalling folder
 - Install the required packages by running `npm install`
@@ -34,4 +36,11 @@ First, download this repository as a ZIP file.
 socket = IO.socket("https://peaceful-cliffs-12345.herokuapp.com:443");
 ```
 - Signalling will now work if you push the app to 2 devices on different networks. However, you might still get a black screen in place of the video since we have not added any ICE servers yet.
- 
+### ICE servers
+This quickstart uses the Xirsys platform for STUN and TURN servers
+
+- Create an account on Xirsys [here](https://global.xirsys.net/dashboard/signup)
+- Go to the Services section of the Dashboard
+- Get your Static TURN Credentials
+- In the `getIceServers()` method of MainActivity.java, replace the placeholders with the URL for the STUN server, the URL for the TURN server, and the username and password for the TURN servers. Currently, the app uses only one TURN server, but you can add as many as you want. If you want to add all the TURN servers, I would reccomend parsing the JSON and adding the servers programmatically.
+- Now, the app should work completely with both devices on different networks (for example with one device on your home WiFi and the other on cellular data
