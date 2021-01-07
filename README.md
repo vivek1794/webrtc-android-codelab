@@ -30,7 +30,7 @@ Make sure to include `http://` in the URL! The code won't work without it.
 - Run the signalling server code using `node index.js`
 - The app will now work on 2 devices connected to the same network as the computer running the signalling server
 ### Run the signalling server on Heroku
-- Create an account on Heroku
+- Create an account on [Heroku](https://signup.heroku.com/)
 - Download the Heroku CLI [here](https://devcenter.heroku.com/articles/heroku-cli#download-and-install)
 - Open a command prompt and navigate to the [heroku_signalling](./signalling/heroku_signalling) folder
 - Initialize an empty git repository : `git init`
@@ -43,7 +43,7 @@ Make sure to include `http://` in the URL! The code won't work without it.
 ```
 socket = IO.socket("https://peaceful-cliffs-12345.herokuapp.com:443");
 ```
-- Signalling will now work if you push the app to 2 devices on different networks. However, you might still get a black screen in place of the video since we have not added any ICE servers yet.
+- Signalling will now work if you push the app to 2 devices on different networks. However, you might still get a black screen in place of the video since we have not added any [ICE servers](https://andrewjprokop.wordpress.com/2014/07/21/understanding-webrtc-media-connections-ice-stun-and-turn/) yet.
 For more information on how to deploy a Node.js app to Heroku, click [here](https://devcenter.heroku.com/articles/deploying-nodejs)
 ### ICE servers
 This quickstart uses the Xirsys platform for STUN and TURN servers
