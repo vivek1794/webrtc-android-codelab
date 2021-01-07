@@ -2,10 +2,13 @@ package xyz.vivekc.webrtccodelab;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.appcompat.app.AppCompatActivity;
@@ -104,13 +107,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
         if (requestCode == ALL_PERMISSIONS_CODE
-                && grantResults.length == 2
+                && grantResults.length == 3
                 && grantResults[0] == PackageManager.PERMISSION_GRANTED
-                && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+                && grantResults[1] == PackageManager.PERMISSION_GRANTED
+                && grantResults[2] == PackageManager.PERMISSION_GRANTED) {
             // all permissions granted
             start();
         } else {
-            finish();
+            AlertDialog.Builder builder=new AlertDialog.Builder(this);
+            builder.setMessage("This app needs permission to record audio and video");
+            builder.setPositiveButton("Give permissions", ((dialogInterface, i) -> {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO, Manifest.permission.MODIFY_AUDIO_SETTINGS}, ALL_PERMISSIONS_CODE);
+            }
+
+            ));
+            builder.setNegativeButton("Quit", ((dialogInterface, i) -> finish()));
+            AlertDialog dialog = builder.create();
+            dialog.show();
+
         }
     }
 
@@ -439,7 +453,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 params.height = dpToPx(100);
                 params.width = dpToPx(100);
             } else {
-                params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+                params = new ConstraintLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
             }
             localVideoView.setLayoutParams(params);
         });
@@ -474,6 +488,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     protected void onDestroy() {
+        hangup();
         SignallingClient.getInstance().close();
         super.onDestroy();
 
