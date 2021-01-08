@@ -37,4 +37,4 @@ output.json
 obj/
 .externalNativeBuild
 # Node modules
-signalling/node_modules/ 
+signalling/heroku_signalling/node_modules/ 
