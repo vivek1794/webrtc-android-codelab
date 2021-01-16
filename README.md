@@ -54,6 +54,14 @@ This quickstart uses the Xirsys platform for STUN and TURN servers
 - Go to Static TURN Credentials and click plus. You now have your Static TURN Credentials The static turn credentials will look like ![image](https://i.postimg.cc/vmMS6qRv/Xirsys.png)
 - In the `getIceServers()` method of MainActivity.java, replace the placeholders with the URL for the STUN server, the URL for the TURN server, and the username and password for the TURN servers. Currently, the app uses only one TURN server, but you can add as many as you want. If you want to add all the TURN servers, I would reccomend parsing the JSON and adding the servers programmatically.
 - Now, the app should work completely with both devices on **different networks** (for example with one device on your home WiFi and the other on cellular data
+### Screen sharing
+To use screen sharing, you can enable screen sharing on one device and leave the code on the other device transmitting video. This way, the device whose code is unchanged(transmitting video) will receive the screencast from the other device. 
+- Go to `AndroidManifest.xml` in the Step-3 app
+- Uncomment the `<intent-filter>` under the ScreenCaptureActivity and comment out the `<intent-filter>` under the MainActivity
+- In line 212 of `MainActivity.java`, change `setMirror` for `remoteVideoVideo` to false
+- Push the app with these changes to one device (not both)
+- If you now launch the app on the two devices, the device which is running the app without the above changes should receive the screencast from the device to which you just pushed the app.
+
 # Demos
 Click on the thumbnails to view the videos
 ## Video call
