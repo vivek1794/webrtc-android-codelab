@@ -1,47 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    >
 
-    <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:id="@+id/activity_main"
+
+    <org.webrtc.SurfaceViewRenderer
+        android:id="@+id/remote_gl_surface_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="1"
-        android:orientation="vertical"
-        tools:context="xyz.vivekc.webrtccodelab.MainActivity">
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 
-        <org.webrtc.SurfaceViewRenderer
-            android:id="@+id/remote_gl_surface_view"
-            android:layout_width="match_parent"
-            android:layout_weight="1"
-            android:visibility="gone"
-            android:layout_height="match_parent" />
-
-        <org.webrtc.SurfaceViewRenderer
-            android:id="@+id/local_gl_surface_view"
-            android:layout_width="match_parent"
-            android:layout_gravity="bottom|end"
-            android:layout_height="match_parent" />
-
-
-
-    </FrameLayout>
-
-    <LinearLayout
+    <org.webrtc.SurfaceViewRenderer
+        android:id="@+id/local_gl_surface_view"
         android:layout_width="match_parent"
+        android:layout_height="match_parent"
+
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/end_call"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:orientation="horizontal">
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_margin="5dp"
-            android:layout_height="wrap_content"
-            android:id="@+id/end_call"
-            android:text="Hangup" />
-    </LinearLayout>
-</FrameLayout>
+        android:layout_margin="5dp"
+        android:text="Hangup"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

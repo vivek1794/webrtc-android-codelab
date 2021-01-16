@@ -1,71 +1,74 @@
-## Update
-As many might have noticed, I haven't been updating this codelab. It has been some time since I worked with WebRTC but it is in my to-do list to get this updated with as much information as possible. For now, I assume this is broken. PRs are welcome until I get the time to fix it myself. I am pretty sure the Signaling and ICE Servers are not working anymore. For ICE, I used a service - Xirsys which changed their APIs and pricing structure. You would have to look for alternatives (or install Coturn on an AWS instance to run the TURN servers yourself). For Signaling, it is not meant to be production ready. It requires a lot of changes to make it work. 
+# About
+This repository aims to provide a demo of various WebRTC features on Android. Step-3 is the completed app and provides bidirectional audio, video, and text transmission. This includes a demo of basic screen sharing.  If you want to create an app using WebRTC on Android, this repository will help you implement the basic features. The main limitations of the code are that group calls are not supported and there can be only one call at a time.  
+This fork builds on [vivek1794's WebRTC Android codelab](https://github.com/vivek1794/webrtc-android-codelab). The main changes to the code are as follows:
+- Bug fixes, especially in the signalling server code. 
+- Step 3 of the codelab (the finished app) has been migrated to androidx. 
+- The code has been updated to work with the new Xirsys ICE server framework. 
+- The quickstart for the project includes a guide to host the signalling server code on Heroko. Along with the ICE servers, this allows the app to work with the two phones running the app on separate networks, in distant locations. 
+- A demo of using the DataChannel to send or receive messages has been added. 
+- The ScreenCaptureActivity adds screen sharing support using the ScreenCapturerAndroid class.
+- In the original app, the audio played only on the earpiece on both phone. I have added support for playing the audio on the speakerphone. Other audio settings can also be easily changed using Android's AudioManager 
 
-I would recommend looking at https://webrtc.org/getting-started/firebase-rtc-codelab for using Firebase for signalling. I intend on getting the following done
 
-- Make change to the app code so that it uses Firebase for signalling and that would mean you can use Firebase RTC Codelab above to get the web component
-- Try to create a multi-peer mesh network (smaller group calls without the need for a media server)
-- Screen sharing support for mobiles
+# Quickstart
+First, download this repository as a ZIP file.
+### Build the Android Client
 
-I don't have a timeline on when I can get to these. If someone wants to collaborate with me on this, I would love to see some PRs.
-
-Thank you for the support! 
-
-# webrtc-android-codelab
-An attempt to provide a codelab for Webrtc in Android - Similar to codelab for web at https://codelabs.developers.google.com/codelabs/webrtc-web/
-
-More at : https://vivekc.xyz/getting-started-with-webrtc-for-android-daab1e268ff4
-
-## Setup Instructions
-
-The test setup contains of three components:
-
-1. Signaling server
-2. WebRTC Android App
-3. WebRTC example web site
-
-Important: The IP address of the signaling server is hardcoded to `192.168.178.207` and need to be changed in files `SignallingClient.java` and `main.js`.
-
-### Build Android App Client
-
-- "Open an existing Android Studio project"
-- Select the `Step-3` folder
-- On "Unable to get Gradle wrapper properties from:" click "Ok" to recreate gradle files
-- Ignore/Cancel all git related questions
-- Agree to update Gradle
-- Now a warning appears, agree to "Remove Build Tools version and sync project"
-- Select "Files" "Sync Project with Gradle Files"
-- Building and installing the App should work at this point
-
-### Start Signaling Server
-
-The signaling server works uses npm and nodejs:
-
+* Extract the ZIP and open the Step-3 folder in Android Studio (latest version if possible). To do this, open Android Studio then click File > Open > webrtc-android-codelab-master > Step-3 > Okay
+* If Android Studio asks you to configure the android framework, configure it.
+* You can now [push the app](https://developer.android.com/training/basics/firstapp/running-app) to your android devices. But, since the signalling server is not up yet, the app won't work just yet.
+### Run the signalling server on your local machine
+- Find your computer's local IP address using `ipconfig`(Windows), `ifconfig`(Mac), or `ip address show`(Linux)
+- In the SignallingClient class, go to line 74 and replace the placeholder for the url with the `http://` followed by the IP address of your computer. Set the port number to 1794. For example, if your computer's local IP address is 192.168.0.110, line 74 will look like
 ```
-cd signalling
-npm install
-node index.js
+socket = IO.socket("http://192.168.0.110:1794");
 ```
-
-The last command start the signalling server.
-
-### Start Web Client
-
+Make sure to include `http://` in the URL! The code won't work without it. 
+- Download Node.js [here](https://nodejs.org/en/download)
+- Navigate to the [heroku_signalling](./signalling/heroku_signalling) folder located in the [signalling](./signalling) folder
+- Install the required packages by running `npm install`
+- Run the signalling server code using `node index.js`
+- The app will now work on 2 devices connected to the same network as the computer running the signalling server
+### Run the signalling server on Heroku
+- Create an account on [Heroku](https://signup.heroku.com/)
+- Download the Heroku CLI [here](https://devcenter.heroku.com/articles/heroku-cli#download-and-install)
+- Open a command prompt and navigate to the [heroku_signalling](./signalling/heroku_signalling) folder
+- Initialize an empty git repository : `git init`
+- Add everything in the folder to the folder : `git add .`
+- Commit the changes to the repo : `git commit -m "Commit message here"`
+- Login to Heroku : `heroku login`
+- Create a heroku app : `heroku create`
+- Push the local repo to Heroku : `git push heroku master`
+- In line 74 of SignallingClient.java, set the URL to the URL of your Heroku app and set the port number to 443. For example, if the URL of your Heroku app is https://peaceful-cliffs-12345.herokuapp.com, line 74 of SignallingClient.java will look like 
 ```
-cd signalling
-python3 -m http.server
+socket = IO.socket("https://peaceful-cliffs-12345.herokuapp.com:443");
 ```
+- Signalling will now work if you push the app to 2 devices on different networks. However, you might still get a black screen in place of the video since we have not added any [ICE servers](https://andrewjprokop.wordpress.com/2014/07/21/understanding-webrtc-media-connections-ice-stun-and-turn/) yet.
+For more information on how to deploy a Node.js app to Heroku, click [here](https://devcenter.heroku.com/articles/deploying-nodejs)
+### ICE servers
+This quickstart uses the Xirsys platform for STUN and TURN servers
 
-Now open `http://localhost:8000` in the browser.
-You can use a different web server as the python buildin, of course.
+- Create an account on Xirsys [here](https://global.xirsys.net/dashboard/signup)
+- Go to the Services section of the Dashboard
+- Create a new channel
+- Go to Static TURN Credentials and click plus. You now have your Static TURN Credentials The static turn credentials will look like ![image](https://i.postimg.cc/vmMS6qRv/Xirsys.png)
+- In the `getIceServers()` method of MainActivity.java, replace the placeholders with the URL for the STUN server, the URL for the TURN server, and the username and password for the TURN servers. Currently, the app uses only one TURN server, but you can add as many as you want. If you want to add all the TURN servers, I would reccomend parsing the JSON and adding the servers programmatically.
+- Now, the app should work completely with both devices on **different networks** (for example with one device on your home WiFi and the other on cellular data
+### Screen sharing
+To use screen sharing, you can enable screen sharing on one device and leave the code on the other device transmitting video. This way, the device whose code is unchanged(transmitting video) will receive the screencast from the other device. 
+- Go to `AndroidManifest.xml` in the Step-3 app
+- Uncomment the `<intent-filter>` under the ScreenCaptureActivity and comment out the `<intent-filter>` under the MainActivity
+- In line 212 of `MainActivity.java`, change `setMirror` for `remoteVideoVideo` to false
+- Push the app with these changes to one device (not both)
+- If you now launch the app on the two devices, the device which is running the app without the above changes should receive the screencast from the device to which you just pushed the app.
+### Audio settings
+- In `MainActivity.java`, the `setSpeakerPhone` method allows you to play the audio on the speaker phone (default is earpiece). You can use Android's `AudioManager` to make other changes to the audio settings
+### Data channel
+- The `onDataChannel` method (Lines 268-297 of `MainActivity.java`) has basic demos of sending and receiving text messages 
 
-## How to enable HTTPS
-
-Change http to https in `signalling/index.js`, `signalling/js/main.js` and `Step-3/app/src/main/java/xyz/vivekc/webrtccodelab/SignallingClient.java`.
-
-Then create files `key.pem` and `cert.pem` (e.g. with openssl) and uncomment the key options in `signalling/index.js`.
-
-Command to create `key.pem` and `cert.pem`:
-```
-openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout key.pem -out cert.pem
-```
+# Demos
+Click on the thumbnails to view the videos
+## Video call
+[![Demo of video call](http://img.youtube.com/vi/GceKKH8fmlc/0.jpg)](https://www.youtube.com/watch?v=GceKKH8fmlc "Demo of video call")
+## Screen sharing
+[![Demo of screen sharing](http://img.youtube.com/vi/rFPMtYMI6L4/0.jpg)](https://www.youtube.com/watch?v=rFPMtYMI6L4 "Demo of screen sharing")
