@@ -61,6 +61,10 @@ To use screen sharing, you can enable screen sharing on one device and leave the
 - In line 212 of `MainActivity.java`, change `setMirror` for `remoteVideoVideo` to false
 - Push the app with these changes to one device (not both)
 - If you now launch the app on the two devices, the device which is running the app without the above changes should receive the screencast from the device to which you just pushed the app.
+### Audio settings
+- In `MainActivity.java`, the `setSpeakerPhone` method allows you to play the audio on the speaker phone (default is earpiece). You can use Android's `AudioManager` to make other changes to the audio settings
+### Data channel
+- The `onDataChannel` method (Lines 268-297 of `MainActivity.java`) has basic demos of sending and receiving text messages 
 
 # Demos
 Click on the thumbnails to view the videos
