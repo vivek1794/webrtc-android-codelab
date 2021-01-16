@@ -55,6 +55,7 @@ This quickstart uses the Xirsys platform for STUN and TURN servers
 - In the `getIceServers()` method of MainActivity.java, replace the placeholders with the URL for the STUN server, the URL for the TURN server, and the username and password for the TURN servers. Currently, the app uses only one TURN server, but you can add as many as you want. If you want to add all the TURN servers, I would reccomend parsing the JSON and adding the servers programmatically.
 - Now, the app should work completely with both devices on **different networks** (for example with one device on your home WiFi and the other on cellular data
 # Demos
+Click on the thumbnails to view the videos
 ## Video call
 [![Demo of video call](http://img.youtube.com/vi/GceKKH8fmlc/0.jpg)](https://www.youtube.com/watch?v=GceKKH8fmlc "Demo of video call")
 ## Screen sharing
