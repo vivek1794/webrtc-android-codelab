@@ -56,6 +56,6 @@ This quickstart uses the Xirsys platform for STUN and TURN servers
 - Now, the app should work completely with both devices on **different networks** (for example with one device on your home WiFi and the other on cellular data
 # Demos
 ## Video call
-![Demo of video call](https://youtu.be/rFPMtYMI6L4)
+[![Demo of video call](http://img.youtube.com/vi/GceKKH8fmlc/0.jpg)](https://www.youtube.com/watch?v=GceKKH8fmlc "Demo of video call")
 ## Screen sharing
-![Demo of screen sharing](https://youtu.be/GceKKH8fmlc)
+[![Demo of screen sharing](http://img.youtube.com/vi/rFPMtYMI6L4/0.jpg)](https://www.youtube.com/watch?v=rFPMtYMI6L4 "Demo of screen sharing")
