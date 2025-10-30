@@ -10,7 +10,7 @@ public class TurnServerPojo {
 
     @SerializedName("s")
     @Expose
-    public Integer s;
+    public String s;
     @SerializedName("p")
     @Expose
     public String p;
